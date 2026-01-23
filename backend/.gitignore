@@ -1,0 +1,4 @@
+cmd/server/tmp
+.env
+internal/graph/generated.go
+internal/graph/model/models_gen.go
