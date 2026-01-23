@@ -4,7 +4,7 @@ run:
 	go build cmd/server/main.go && go run cmd/server/main.go
 
 gen:
-	go run github.com/99designs/gqlgen generate
+	cd internal && go run github.com/99designs/gqlgen generate
 
 dev:
 	go tool air
