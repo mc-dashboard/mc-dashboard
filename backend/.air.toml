@@ -1,14 +1,14 @@
 #:schema https://json.schemastore.org/any.json
 
 env_files = []
-root = "./cmd/server"
+root = "."
 testdata_dir = "testdata"
 tmp_dir = "./tmp"
 
 [build]
   args_bin = []
   bin = "./tmp/main"
-  cmd = "go build -o ./cmd/server/tmp/main ./cmd/server"
+  cmd = "go build -o ./tmp/main ./cmd/server"
   delay = 1000
   entrypoint = ["./tmp/main"]
   exclude_dir = ["assets", "tmp", "vendor", "testdata"]
