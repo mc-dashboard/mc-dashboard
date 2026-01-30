@@ -1,6 +1,8 @@
 package graph
 
-import "github.com/jackc/pgx/v5/pgxpool"
+import (
+	"github.com/jackc/pgx/v5/pgxpool"
+)
 
 // This file will not be regenerated automatically.
 //

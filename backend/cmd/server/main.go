@@ -10,6 +10,8 @@ import (
 	"github.com/rohanvsuri/minecraft-dashboard/internal/config"
 	"github.com/rohanvsuri/minecraft-dashboard/internal/db"
 	"github.com/rohanvsuri/minecraft-dashboard/internal/graph"
+	"github.com/rohanvsuri/minecraft-dashboard/internal/lambda"
+	"github.com/rohanvsuri/minecraft-dashboard/internal/minecraft"
 	"github.com/rohanvsuri/minecraft-dashboard/internal/router"
 )
 
@@ -29,9 +31,13 @@ func main() {
 
 	authService := auth.NewService(cfg, pool)
 
+	lambdaService := lambda.NewLambdaService(cfg)
+	minecraftHandler := minecraft.NewMinecraftHandler(lambdaService)
+
+
 	resolver := &graph.Resolver{DB: pool}
 
-	r := router.NewRouter(cfg, authService, resolver)
+	r := router.NewRouter(cfg, authService, resolver, minecraftHandler)
 
 	log.Printf("Server running on http://localhost:%s", cfg.ServerPort)
 	if err := http.ListenAndServe(":"+cfg.ServerPort, r); err != nil {

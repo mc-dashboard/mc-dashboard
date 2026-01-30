@@ -11,9 +11,10 @@ import (
 	"github.com/rohanvsuri/minecraft-dashboard/internal/auth"
 	"github.com/rohanvsuri/minecraft-dashboard/internal/config"
 	"github.com/rohanvsuri/minecraft-dashboard/internal/graph"
+	"github.com/rohanvsuri/minecraft-dashboard/internal/minecraft"
 )
 
-func NewRouter(cfg *config.Config, authService *auth.Service, resolver *graph.Resolver) *chi.Mux {
+func NewRouter(cfg *config.Config, authService *auth.Service, resolver *graph.Resolver, minecraftHandler *minecraft.MinecraftHandler) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(middleware.Logger)
@@ -37,6 +38,9 @@ func NewRouter(cfg *config.Config, authService *auth.Service, resolver *graph.Re
 
 		r.Get("/logout", authService.HandleLogout)
 		r.Get("/api/user", authService.HandleGetUser)
+
+		r.Post("/api/minecraft/start", minecraftHandler.StartServer)
+		r.Post("/api/minecraft/stop", minecraftHandler.StopServer)
 
 		srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{
 			Resolvers: resolver,

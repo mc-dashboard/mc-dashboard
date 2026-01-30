@@ -7,12 +7,16 @@ import (
 
 type Config struct {
 	ServerPort         string
-	// Environment string // "development" | "production"
+
 	DatabaseURL        string
 
 	GoogleClientID     string
 	GoogleClientSecret string
 	GoogleRedirectURL  string
+
+	AwsAccessKeyId     string
+	AwsSecretAccessKey string
+	AwsRegion		   string
 	
 	SessionSecret      string
 	SessionMaxAge      int
@@ -29,6 +33,9 @@ func Load() (*Config, error) {
 		GoogleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		GoogleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
 		GoogleRedirectURL:  getEnv("GOOGLE_REDIRECT_URL", "http://localhost:8080/auth/google/callback"),
+		AwsAccessKeyId:     os.Getenv("AWS_ACCESS_KEY_ID"),
+		AwsSecretAccessKey: os.Getenv("AWS_SECRET_ACCESS_KEY"),
+		AwsRegion:          getEnv("AWS_REGION", "us-east-1"),
 		SessionSecret:      os.Getenv("SESSION_SECRET"),
 		SessionMaxAge:      86400,
 		FrontendURL:        getEnv("FRONTEND_URL", "http://localhost:3000"),
@@ -44,6 +51,15 @@ func Load() (*Config, error) {
 	}
 	if cfg.GoogleClientSecret == "" {
 		return nil, fmt.Errorf("GOOGLE_CLIENT_SECRET is required")
+	}
+	if cfg.AwsAccessKeyId == "" {
+		return nil, fmt.Errorf("AWS_ACCESS_KEY_ID is required")
+	}
+	if cfg.AwsSecretAccessKey == "" {
+		return nil, fmt.Errorf("AWS_SECRET_ACCESS_KEY is required")
+	}
+	if cfg.AwsRegion == "" {
+		return nil, fmt.Errorf("AWS_REGION is required")
 	}
 	if cfg.SessionSecret == "" {
 		return nil, fmt.Errorf("SESSION_SECRET is required")
