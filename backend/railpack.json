@@ -1,0 +1,28 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "provider": "go",
+  "steps": {
+    "build": {
+      "inputs": [
+        {
+          "local": true,
+          "include": ["."]
+        }
+      ],
+      "commands": [
+        "go mod download",
+        {
+          "cmd": "cd internal && go run github.com/99designs/gqlgen generate",
+          "customName": "Generate GraphQL code"
+        },
+        {
+          "cmd": "go build -o /app/server ./cmd/server",
+          "customName": "Build server binary"
+        }
+      ]
+    }
+  },
+  "deploy": {
+    "startCommand": "/app/server"
+  }
+}
