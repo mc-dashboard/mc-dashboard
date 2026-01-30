@@ -1,11 +1,10 @@
 {
   "$schema": "https://schema.railpack.com",
-  "provider": "go",
   "steps": {
     "build": {
       "commands": [
         {
-          "cmd": "cd internal && go run github.com/99designs/gqlgen generate",
+          "cmd": "sh -c 'cd internal && go run github.com/99designs/gqlgen generate'",
           "customName": "Generate GraphQL code"
         },
         {
