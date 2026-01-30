@@ -59,7 +59,6 @@ export default function Dashboard() {
       <button onClick={handleStart}>Start Server</button>
       <button onClick={handleStop}>Stop Server</button>
       {status && <p>{status}</p>}
-      {usersLoading ? <p>Loading users...</p> : <pre>{JSON.stringify(data, null, 2)}</pre>}
     </div>
   );
 }
