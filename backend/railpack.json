@@ -3,12 +3,6 @@
   "provider": "go",
   "steps": {
     "build": {
-      "inputs": [
-        {
-          "local": true,
-          "include": ["."]
-        }
-      ],
       "commands": [
         "go mod download",
         {
