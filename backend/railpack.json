@@ -4,7 +4,6 @@
   "steps": {
     "build": {
       "commands": [
-        "go mod download",
         {
           "cmd": "cd internal && go run github.com/99designs/gqlgen generate",
           "customName": "Generate GraphQL code"
