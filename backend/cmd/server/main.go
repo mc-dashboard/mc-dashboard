@@ -3,34 +3,38 @@ package main
 import (
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/joho/godotenv"
 
 	"github.com/rohanvsuri/minecraft-dashboard/internal/auth"
 	"github.com/rohanvsuri/minecraft-dashboard/internal/config"
+	"github.com/rohanvsuri/minecraft-dashboard/internal/db"
+	"github.com/rohanvsuri/minecraft-dashboard/internal/graph"
 	"github.com/rohanvsuri/minecraft-dashboard/internal/router"
 )
 
 func main() {
 	godotenv.Load()
 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	cfg := config.Load()
+	pool, err := db.InitDB(cfg.DatabaseURL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer pool.Close()
 
-	auth.InitHandlers(cfg)
-	auth.InitAllowedEmails(cfg)
-	auth.InitSessionStore(cfg);
-	auth.InitOAuth(cfg);
+	authService := auth.NewService(cfg, pool)
 
-	r := router.NewRouter(cfg);
+	resolver := &graph.Resolver{DB: pool}
 
-	log.Printf("Server running on http://localhost:%s", port)
-	if err := http.ListenAndServe(":"+port, r); err != nil {
+	r := router.NewRouter(cfg, authService, resolver)
+
+	log.Printf("Server running on http://localhost:%s", cfg.ServerPort)
+	if err := http.ListenAndServe(":"+cfg.ServerPort, r); err != nil {
 		log.Fatal(err)
 	}
 }

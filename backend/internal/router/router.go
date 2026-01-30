@@ -13,14 +13,12 @@ import (
 	"github.com/rohanvsuri/minecraft-dashboard/internal/graph"
 )
 
-func NewRouter(cfg *config.Config) *chi.Mux {
+func NewRouter(cfg *config.Config, authService *auth.Service, resolver *graph.Resolver) *chi.Mux {
 	r := chi.NewRouter()
 
-	// Basic middleware
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	// CORS middleware for frontend
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{cfg.FrontendURL},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -30,25 +28,24 @@ func NewRouter(cfg *config.Config) *chi.Mux {
 	}))
 
 	// Public routes
-	r.Get("/login", auth.HandleLogin)
-	r.Get("/auth/google/callback", auth.HandleCallback)
+	r.Get("/login", authService.HandleLogin)
+	r.Get("/auth/google/callback", authService.HandleCallback)
 
 	// Protected routes
 	r.Group(func(r chi.Router) {
-		r.Use(auth.RequireAuth)
+		r.Use(authService.RequireAuth)
 
-		r.Get("/logout", auth.HandleLogout)
-		r.Get("/api/user", auth.HandleGetUser)
+		r.Get("/logout", authService.HandleLogout)
+		r.Get("/api/user", authService.HandleGetUser)
 
 		srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{
-			Resolvers: &graph.Resolver{},
+			Resolvers: resolver,
 		}))
-
 		r.Handle("/graphql", srv)
 	})
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Helloo World!"))
+		w.Write([]byte("Hello World!"))
 	})
 
 	return r
