@@ -1,0 +1,5 @@
+{
+    "$schema": "./node_modules/wrangler/config-schema.json",
+    "name": "minecraft-dashboard",
+    "compatibility_date": "2022-07-12"
+  }
