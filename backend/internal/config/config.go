@@ -17,12 +17,13 @@ type Config struct {
 	AwsAccessKeyId     string
 	AwsSecretAccessKey string
 	AwsRegion		   string
-	
+
 	SessionSecret      string
 	SessionMaxAge      int
-	
+
 	FrontendURL        string
 	EnableDebugLogging bool
+	IsProduction       bool
 }
 
 func Load() (*Config, error) {
@@ -40,6 +41,7 @@ func Load() (*Config, error) {
 		SessionMaxAge:      86400,
 		FrontendURL:        getEnv("FRONTEND_URL", "http://localhost:3000"),
 		EnableDebugLogging: os.Getenv("ENABLE_DEBUG_LOGGING") == "true",
+		IsProduction:       os.Getenv("ENV") == "production",
 	}
 
 	// Validate required fields

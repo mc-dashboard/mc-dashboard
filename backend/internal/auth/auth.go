@@ -27,12 +27,20 @@ type Service struct {
 // NewService creates the auth service with all dependencies.
 func NewService(cfg *config.Config, pool *pgxpool.Pool) *Service {
 	store := sessions.NewCookieStore([]byte(cfg.SessionSecret))
+
+	// In production with HTTPS, cookies must have Secure flag
+	// SameSite=None is required for cross-site cookies with Secure flag
+	sameSite := http.SameSiteLaxMode
+	if cfg.IsProduction {
+		sameSite = http.SameSiteNoneMode
+	}
+
 	store.Options = &sessions.Options{
 		Path:     "/",
 		MaxAge:   86400 * 7, // 7 days
 		HttpOnly: true,
-		Secure:   false, // Set to true in production with HTTPS
-		SameSite: http.SameSiteLaxMode,
+		Secure:   cfg.IsProduction,
+		SameSite: sameSite,
 	}
 
 	oauthConfig := &oauth2.Config{
