@@ -2,13 +2,13 @@ package minecraft
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strings"
 
 	"github.com/rohanvsuri/minecraft-dashboard/internal/lambda"
 )
 
+// allowedCommands defines the whitelist of safe, read-only commands
 var allowedCommands = map[string]bool{
 	"list":          true,
 	"seed":          true,
@@ -18,22 +18,20 @@ var allowedCommands = map[string]bool{
 	"difficulty":    true,
 }
 
-// Response types for API endpoints
+// ServerActionResponse is returned from server control endpoints
 type ServerActionResponse struct {
 	Success bool   `json:"success"`
 	Message string `json:"message"`
 	Result  any    `json:"result,omitempty"`
 }
 
+// PlayerListResponse is returned from the player list endpoint
 type PlayerListResponse struct {
 	Players []PlayerInfo `json:"players"`
 	Count   int          `json:"count"`
 }
 
-type CommandResponse struct {
-	Response string `json:"response"`
-}
-
+// MinecraftHandler handles HTTP requests for Minecraft server operations
 type MinecraftHandler struct {
 	LambdaService *lambda.FunctionWrapper
 	RCONClient    *RCONClient
@@ -46,31 +44,29 @@ func NewMinecraftHandler(lambdaService *lambda.FunctionWrapper, rconClient *RCON
 	}
 }
 
+// Server Control Endpoints
+
 func (h *MinecraftHandler) StartServer(w http.ResponseWriter, r *http.Request) {
 	result := h.LambdaService.CallLambda("ec2-start")
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(ServerActionResponse{
+	h.writeJSON(w, ServerActionResponse{
 		Success: true,
 		Message: "Server start initiated",
 		Result:  result,
-	}); err != nil {
-		log.Printf("Failed to encode response: %v", err)
-	}
+	})
 }
 
 func (h *MinecraftHandler) StopServer(w http.ResponseWriter, r *http.Request) {
 	result := h.LambdaService.CallLambda("ec2-stop")
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(ServerActionResponse{
+	h.writeJSON(w, ServerActionResponse{
 		Success: true,
 		Message: "Server stop initiated",
 		Result:  result,
-	}); err != nil {
-		log.Printf("Failed to encode response: %v", err)
-	}
+	})
 }
+
+// RCON Data Endpoints
 
 func (h *MinecraftHandler) GetServerStatus(w http.ResponseWriter, r *http.Request) {
 	if h.RCONClient == nil {
@@ -84,10 +80,7 @@ func (h *MinecraftHandler) GetServerStatus(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(status); err != nil {
-		log.Printf("Failed to encode status response: %v", err)
-	}
+	h.writeJSON(w, status)
 }
 
 func (h *MinecraftHandler) GetOnlinePlayers(w http.ResponseWriter, r *http.Request) {
@@ -102,13 +95,10 @@ func (h *MinecraftHandler) GetOnlinePlayers(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(PlayerListResponse{
+	h.writeJSON(w, PlayerListResponse{
 		Players: players,
 		Count:   len(players),
-	}); err != nil {
-		log.Printf("Failed to encode players response: %v", err)
-	}
+	})
 }
 
 func (h *MinecraftHandler) ExecuteCommand(w http.ResponseWriter, r *http.Request) {
@@ -121,7 +111,6 @@ func (h *MinecraftHandler) ExecuteCommand(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Validate command against whitelist
 	trimmedCmd := strings.TrimSpace(req.Command)
 	if trimmedCmd == "" {
 		http.Error(w, "Command cannot be empty", http.StatusBadRequest)
@@ -138,18 +127,20 @@ func (h *MinecraftHandler) ExecuteCommand(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	response, err := h.RCONClient.ExecuteCommand(req.Command)
+	response, err := h.RCONClient.SendCommand(req.Command)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	h.writeJSON(w, map[string]string{"response": response})
+}
+
+// Helper Functions
+
+func (h *MinecraftHandler) writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(CommandResponse{
-		Response: response,
-	}); err != nil {
-		log.Printf("Failed to encode command response: %v", err)
-	}
+	json.NewEncoder(w).Encode(v)
 }
 
 // isCommandAllowed checks if a command matches the whitelist.

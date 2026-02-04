@@ -7,6 +7,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// Unit Tests
+
 func TestParseListResponse(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -20,7 +22,7 @@ func TestParseListResponse(t *testing.T) {
 			response:    "There are 0 of a max of 20 players online:",
 			wantCount:   0,
 			wantMax:     20,
-			wantPlayers: []string{},
+			wantPlayers: nil,
 		},
 		{
 			name:        "one player",
@@ -44,15 +46,16 @@ func TestParseListResponse(t *testing.T) {
 
 			require.Equal(t, tt.wantCount, got.PlayerCount)
 			require.Equal(t, tt.wantMax, got.MaxPlayers)
+			require.Len(t, got.Players, len(tt.wantPlayers))
 
-			gotNames := make([]string, len(got.Players))
 			for i, p := range got.Players {
-				gotNames[i] = p.Name
+				require.Equal(t, tt.wantPlayers[i], p.Name)
 			}
-			require.Equal(t, tt.wantPlayers, gotNames)
 		})
 	}
 }
+
+// Integration Tests
 
 func TestRCONIntegration(t *testing.T) {
 	host := os.Getenv("MINECRAFT_HOST")

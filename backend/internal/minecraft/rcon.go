@@ -10,6 +10,7 @@ import (
 	"github.com/james4k/rcon"
 )
 
+// RCONClient manages the connection to a Minecraft server's RCON interface
 type RCONClient struct {
 	host     string
 	port     string
@@ -19,6 +20,29 @@ type RCONClient struct {
 	timeout  time.Duration
 }
 
+// PlayerInfo represents a Minecraft player
+type PlayerInfo struct {
+	Name string `json:"name"`
+	UUID string `json:"uuid"`
+}
+
+// ServerStatus represents the current state of the Minecraft server
+type ServerStatus struct {
+	Online      bool         `json:"online"`
+	PlayerCount int          `json:"playerCount"`
+	MaxPlayers  int          `json:"maxPlayers"`
+	Players     []PlayerInfo `json:"players"`
+	LastUpdate  time.Time    `json:"lastUpdate"`
+}
+
+type listResponse struct {
+	PlayerCount int
+	MaxPlayers  int
+	Players     []PlayerInfo
+}
+
+// Constructor
+
 func NewRCONClient(host, port, password string) *RCONClient {
 	return &RCONClient{
 		host:     host,
@@ -27,6 +51,8 @@ func NewRCONClient(host, port, password string) *RCONClient {
 		timeout:  10 * time.Second,
 	}
 }
+
+// Connection Lifecycle
 
 func (c *RCONClient) Connect() error {
 	c.mu.Lock()
@@ -38,24 +64,22 @@ func (c *RCONClient) Connect() error {
 
 	address := fmt.Sprintf("%s:%s", c.host, c.port)
 
-	// Connect with timeout using a goroutine
-	type result struct {
+	type dialResult struct {
 		conn *rcon.RemoteConsole
 		err  error
 	}
-
-	resultChan := make(chan result, 1)
+	ch := make(chan dialResult, 1)
 	go func() {
 		conn, err := rcon.Dial(address, c.password)
-		resultChan <- result{conn, err}
+		ch <- dialResult{conn, err}
 	}()
 
 	select {
-	case res := <-resultChan:
-		if res.err != nil {
-			return fmt.Errorf("failed to connect to RCON: %w", res.err)
+	case r := <-ch:
+		if r.err != nil {
+			return fmt.Errorf("failed to connect to RCON: %w", r.err)
 		}
-		c.conn = res.conn
+		c.conn = r.conn
 		log.Printf("Connected to Minecraft RCON at %s", address)
 		return nil
 	case <-time.After(c.timeout):
@@ -74,6 +98,8 @@ func (c *RCONClient) Disconnect() error {
 	}
 	return nil
 }
+
+// Core Communication
 
 func (c *RCONClient) SendCommand(command string) (string, error) {
 	c.mu.Lock()
@@ -106,20 +132,7 @@ func (c *RCONClient) SendCommand(command string) (string, error) {
 	return response, nil
 }
 
-type PlayerInfo struct {
-	Name string `json:"name"`
-	UUID string `json:"uuid"`
-}
-
-type ServerStatus struct {
-	Online      bool         `json:"online"`
-	PlayerCount int          `json:"playerCount"`
-	MaxPlayers  int          `json:"maxPlayers"`
-	Players     []PlayerInfo `json:"players"`
-	Version     string       `json:"version"`
-	MOTD        string       `json:"motd"`
-	LastUpdate  time.Time    `json:"lastUpdate"`
-}
+// High-Level Queries
 
 func (c *RCONClient) GetOnlinePlayers() ([]PlayerInfo, error) {
 	response, err := c.SendCommand("list")
@@ -127,22 +140,6 @@ func (c *RCONClient) GetOnlinePlayers() ([]PlayerInfo, error) {
 		return nil, err
 	}
 	return parseListResponse(response).Players, nil
-}
-
-func (c *RCONClient) GetPlayerCount() (int, int, error) {
-	response, err := c.SendCommand("list")
-	if err != nil {
-		return 0, 0, err
-	}
-
-	// Parse response like: "There are 3 of a max of 20 players online"
-	var current, max int
-	_, err = fmt.Sscanf(response, "There are %d of a max of %d", &current, &max)
-	if err != nil {
-		return 0, 0, fmt.Errorf("failed to parse player count: %w", err)
-	}
-
-	return current, max, nil
 }
 
 func (c *RCONClient) GetServerStatus() (*ServerStatus, error) {
@@ -164,43 +161,22 @@ func (c *RCONClient) GetServerStatus() (*ServerStatus, error) {
 	}, nil
 }
 
-type listResponse struct {
-	PlayerCount int
-	MaxPlayers  int
-	Players     []PlayerInfo
-}
+// Internal Helpers
 
 func parseListResponse(response string) listResponse {
 	var result listResponse
-
 	fmt.Sscanf(response, "There are %d of a max of %d", &result.PlayerCount, &result.MaxPlayers)
-
-	if strings.Contains(response, "0 of a max") {
-		return result
-	}
 
 	parts := strings.Split(response, ": ")
 	if len(parts) < 2 {
 		return result
 	}
 
-	for _, name := range strings.Split(parts[1], ", ") {
+	for name := range strings.SplitSeq(parts[1], ", ") {
 		name = strings.TrimSpace(name)
 		if name != "" {
 			result.Players = append(result.Players, PlayerInfo{Name: name})
 		}
 	}
-
 	return result
-}
-
-// GetPlayerStats retrieves stats for a specific player
-func (c *RCONClient) GetPlayerStats(playerName string) (string, error) {
-	command := fmt.Sprintf("data get entity %s", playerName)
-	return c.SendCommand(command)
-}
-
-// ExecuteCommand sends a raw command to the server
-func (c *RCONClient) ExecuteCommand(command string) (string, error) {
-	return c.SendCommand(command)
 }

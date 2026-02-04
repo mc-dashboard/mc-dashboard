@@ -9,78 +9,63 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetServerStatus_NilClient(t *testing.T) {
-	handler := &MinecraftHandler{
-		RCONClient: nil,
+// Tests for RCON Availability
+
+func TestHandlers_RejectWhenRCONUnavailable(t *testing.T) {
+	handler := &MinecraftHandler{RCONClient: nil}
+
+	tests := []struct {
+		name    string
+		method  string
+		path    string
+		handler func(http.ResponseWriter, *http.Request)
+	}{
+		{"GetServerStatus", http.MethodGet, "/api/minecraft/status", handler.GetServerStatus},
+		{"GetOnlinePlayers", http.MethodGet, "/api/minecraft/players", handler.GetOnlinePlayers},
 	}
 
-	req := httptest.NewRequest(http.MethodGet, "/api/minecraft/status", nil)
-	w := httptest.NewRecorder()
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(tt.method, tt.path, nil)
+			w := httptest.NewRecorder()
 
-	handler.GetServerStatus(w, req)
+			tt.handler(w, req)
 
-	require.Equal(t, http.StatusServiceUnavailable, w.Code)
-	require.Contains(t, w.Body.String(), "RCON client not initialized")
+			require.Equal(t, http.StatusServiceUnavailable, w.Code)
+			require.Contains(t, w.Body.String(), "RCON client not initialized")
+		})
+	}
 }
 
-func TestGetOnlinePlayers_NilClient(t *testing.T) {
-	handler := &MinecraftHandler{
-		RCONClient: nil,
+// Tests for Command Validation
+
+func TestExecuteCommand_RejectsEmptyCommand(t *testing.T) {
+	handler := &MinecraftHandler{}
+
+	for _, cmd := range []string{"", "   "} {
+		body := bytes.NewBufferString(`{"command": "` + cmd + `"}`)
+		req := httptest.NewRequest(http.MethodPost, "/api/minecraft/command", body)
+		w := httptest.NewRecorder()
+
+		handler.ExecuteCommand(w, req)
+
+		require.Equal(t, http.StatusBadRequest, w.Code)
+		require.Contains(t, w.Body.String(), "Command cannot be empty")
 	}
-
-	req := httptest.NewRequest(http.MethodGet, "/api/minecraft/players", nil)
-	w := httptest.NewRecorder()
-
-	handler.GetOnlinePlayers(w, req)
-
-	require.Equal(t, http.StatusServiceUnavailable, w.Code)
-	require.Contains(t, w.Body.String(), "RCON client not initialized")
 }
 
-func TestExecuteCommand_EmptyCommand(t *testing.T) {
-	handler := &MinecraftHandler{
-		RCONClient: nil,
-	}
-
-	body := bytes.NewBufferString(`{"command": ""}`)
-	req := httptest.NewRequest(http.MethodPost, "/api/minecraft/command", body)
-	w := httptest.NewRecorder()
-
-	handler.ExecuteCommand(w, req)
-
-	require.Equal(t, http.StatusBadRequest, w.Code)
-	require.Contains(t, w.Body.String(), "Command cannot be empty")
-}
-
-func TestExecuteCommand_WhitespaceOnly(t *testing.T) {
-	handler := &MinecraftHandler{
-		RCONClient: nil,
-	}
-
-	body := bytes.NewBufferString(`{"command": "   "}`)
-	req := httptest.NewRequest(http.MethodPost, "/api/minecraft/command", body)
-	w := httptest.NewRecorder()
-
-	handler.ExecuteCommand(w, req)
-
-	require.Equal(t, http.StatusBadRequest, w.Code)
-	require.Contains(t, w.Body.String(), "Command cannot be empty")
-}
-
-func TestExecuteCommand_DisallowedCommand(t *testing.T) {
-	handler := &MinecraftHandler{
-		RCONClient: nil,
-	}
+func TestExecuteCommand_BlocksDangerousCommands(t *testing.T) {
+	handler := &MinecraftHandler{}
 
 	tests := []struct {
 		name    string
 		command string
 	}{
-		{"op command blocked", "op PlayerName"},
-		{"ban command blocked", "ban PlayerName"},
-		{"stop command blocked", "stop"},
-		{"kick command blocked", "kick PlayerName"},
-		{"unknown command blocked", "unknown"},
+		{"blocks op", "op PlayerName"},
+		{"blocks ban", "ban PlayerName"},
+		{"blocks stop", "stop"},
+		{"blocks kick", "kick PlayerName"},
+		{"blocks unknown", "unknown"},
 	}
 
 	for _, tt := range tests {
@@ -97,21 +82,19 @@ func TestExecuteCommand_DisallowedCommand(t *testing.T) {
 	}
 }
 
-func TestExecuteCommand_AllowedCommandPassesValidation(t *testing.T) {
-	handler := &MinecraftHandler{
-		RCONClient: nil,
-	}
+func TestExecuteCommand_AllowsReadOnlyCommands(t *testing.T) {
+	handler := &MinecraftHandler{}
 
 	tests := []struct {
 		name    string
 		command string
 	}{
-		{"list command allowed", "list"},
-		{"seed command allowed", "seed"},
-		{"time query allowed", "time query daytime"},
-		{"weather query allowed", "weather query"},
-		{"gamerule allowed", "gamerule keepInventory"},
-		{"difficulty allowed", "difficulty"},
+		{"allows list", "list"},
+		{"allows seed", "seed"},
+		{"allows time query", "time query daytime"},
+		{"allows weather query", "weather query"},
+		{"allows gamerule", "gamerule keepInventory"},
+		{"allows difficulty", "difficulty"},
 	}
 
 	for _, tt := range tests {
@@ -122,16 +105,16 @@ func TestExecuteCommand_AllowedCommandPassesValidation(t *testing.T) {
 
 			handler.ExecuteCommand(w, req)
 
-			// Should pass whitelist validation (not 403), failing at RCON client check (503)
+			// Commands pass validation, but fail because RCON is unavailable
 			require.Equal(t, http.StatusServiceUnavailable, w.Code)
 		})
 	}
 }
 
-func TestExecuteCommand_InvalidJSON(t *testing.T) {
-	handler := &MinecraftHandler{
-		RCONClient: nil,
-	}
+// Tests for Request Validation
+
+func TestExecuteCommand_RejectsMalformedRequest(t *testing.T) {
+	handler := &MinecraftHandler{}
 
 	body := bytes.NewBufferString(`{invalid json}`)
 	req := httptest.NewRequest(http.MethodPost, "/api/minecraft/command", body)
