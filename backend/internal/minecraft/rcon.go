@@ -1,13 +1,19 @@
 package minecraft
 
 import (
+	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/james4k/rcon"
+)
+
+var (
+	ErrNotConnected     = errors.New("not connected to RCON")
+	ErrConnectionTimeout = errors.New("RCON connection timed out")
+	ErrResponseMismatch = errors.New("response ID mismatch")
 )
 
 // RCONClient manages the connection to a Minecraft server's RCON interface
@@ -41,8 +47,6 @@ type listResponse struct {
 	Players     []PlayerInfo
 }
 
-// Constructor
-
 func NewRCONClient(host, port, password string) *RCONClient {
 	return &RCONClient{
 		host:     host,
@@ -51,8 +55,6 @@ func NewRCONClient(host, port, password string) *RCONClient {
 		timeout:  10 * time.Second,
 	}
 }
-
-// Connection Lifecycle
 
 func (c *RCONClient) Connect() error {
 	c.mu.Lock()
@@ -80,10 +82,9 @@ func (c *RCONClient) Connect() error {
 			return fmt.Errorf("failed to connect to RCON: %w", r.err)
 		}
 		c.conn = r.conn
-		log.Printf("Connected to Minecraft RCON at %s", address)
 		return nil
 	case <-time.After(c.timeout):
-		return fmt.Errorf("RCON connection timed out after %v", c.timeout)
+		return fmt.Errorf("%w after %v", ErrConnectionTimeout, c.timeout)
 	}
 }
 
@@ -99,19 +100,16 @@ func (c *RCONClient) Disconnect() error {
 	return nil
 }
 
-// Core Communication
-
 func (c *RCONClient) SendCommand(command string) (string, error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	if c.conn == nil {
-		return "", fmt.Errorf("not connected to RCON")
+		return "", ErrNotConnected
 	}
 
 	reqID, err := c.conn.Write(command)
 	if err != nil {
-		log.Printf("RCON write failed: %v", err)
 		c.conn.Close()
 		c.conn = nil
 		return "", fmt.Errorf("failed to send command: %w", err)
@@ -119,20 +117,17 @@ func (c *RCONClient) SendCommand(command string) (string, error) {
 
 	response, responseID, err := c.conn.Read()
 	if err != nil {
-		log.Printf("RCON read failed: %v", err)
 		c.conn.Close()
 		c.conn = nil
 		return "", fmt.Errorf("failed to read response: %w", err)
 	}
 
 	if reqID != responseID {
-		return "", fmt.Errorf("response ID mismatch: want %d, got %d", reqID, responseID)
+		return "", fmt.Errorf("%w: want %d, got %d", ErrResponseMismatch, reqID, responseID)
 	}
 
 	return response, nil
 }
-
-// High-Level Queries
 
 func (c *RCONClient) GetOnlinePlayers() ([]PlayerInfo, error) {
 	response, err := c.SendCommand("list")
@@ -160,8 +155,6 @@ func (c *RCONClient) GetServerStatus() (*ServerStatus, error) {
 		LastUpdate:  time.Now(),
 	}, nil
 }
-
-// Internal Helpers
 
 func parseListResponse(response string) listResponse {
 	var result listResponse

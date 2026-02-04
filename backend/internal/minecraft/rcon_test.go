@@ -48,8 +48,12 @@ func TestParseListResponse(t *testing.T) {
 			require.Equal(t, tt.wantMax, got.MaxPlayers)
 			require.Len(t, got.Players, len(tt.wantPlayers))
 
-			for i, p := range got.Players {
-				require.Equal(t, tt.wantPlayers[i], p.Name)
+			if len(tt.wantPlayers) > 0 {
+				gotNames := make([]string, len(got.Players))
+				for i, p := range got.Players {
+					gotNames[i] = p.Name
+				}
+				require.Equal(t, tt.wantPlayers, gotNames)
 			}
 		})
 	}

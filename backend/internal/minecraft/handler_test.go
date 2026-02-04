@@ -42,15 +42,25 @@ func TestHandlers_RejectWhenRCONUnavailable(t *testing.T) {
 func TestExecuteCommand_RejectsEmptyCommand(t *testing.T) {
 	handler := &MinecraftHandler{}
 
-	for _, cmd := range []string{"", "   "} {
-		body := bytes.NewBufferString(`{"command": "` + cmd + `"}`)
-		req := httptest.NewRequest(http.MethodPost, "/api/minecraft/command", body)
-		w := httptest.NewRecorder()
+	tests := []struct {
+		name string
+		cmd  string
+	}{
+		{"empty string", ""},
+		{"whitespace only", "   "},
+	}
 
-		handler.ExecuteCommand(w, req)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			body := bytes.NewBufferString(`{"command": "` + tt.cmd + `"}`)
+			req := httptest.NewRequest(http.MethodPost, "/api/minecraft/command", body)
+			w := httptest.NewRecorder()
 
-		require.Equal(t, http.StatusBadRequest, w.Code)
-		require.Contains(t, w.Body.String(), "Command cannot be empty")
+			handler.ExecuteCommand(w, req)
+
+			require.Equal(t, http.StatusBadRequest, w.Code)
+			require.Contains(t, w.Body.String(), "Command cannot be empty")
+		})
 	}
 }
 

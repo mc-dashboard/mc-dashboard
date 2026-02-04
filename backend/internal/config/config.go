@@ -31,7 +31,6 @@ type Config struct {
 }
 
 func Load() (*Config, error) {
-
 	cfg := &Config{
 		ServerPort:            getEnv("PORT", "8080"),
 		DatabaseURL:           os.Getenv("DATABASE_URL"),
@@ -81,7 +80,6 @@ func Load() (*Config, error) {
 	}
 
 	return cfg, nil
-
 }
 
 func getEnv(key, defaultValue string) string {

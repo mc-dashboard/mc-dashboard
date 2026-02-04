@@ -50,7 +50,6 @@ func main() {
 
 	minecraftHandler := minecraft.NewMinecraftHandler(lambdaService, rconClient)
 
-
 	resolver := &graph.Resolver{DB: pool}
 
 	r := router.NewRouter(cfg, authService, resolver, minecraftHandler)

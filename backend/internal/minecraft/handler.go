@@ -44,8 +44,6 @@ func NewMinecraftHandler(lambdaService *lambda.FunctionWrapper, rconClient *RCON
 	}
 }
 
-// Server Control Endpoints
-
 func (h *MinecraftHandler) StartServer(w http.ResponseWriter, r *http.Request) {
 	result := h.LambdaService.CallLambda("ec2-start")
 
@@ -65,8 +63,6 @@ func (h *MinecraftHandler) StopServer(w http.ResponseWriter, r *http.Request) {
 		Result:  result,
 	})
 }
-
-// RCON Data Endpoints
 
 func (h *MinecraftHandler) GetServerStatus(w http.ResponseWriter, r *http.Request) {
 	if h.RCONClient == nil {
@@ -136,15 +132,13 @@ func (h *MinecraftHandler) ExecuteCommand(w http.ResponseWriter, r *http.Request
 	h.writeJSON(w, map[string]string{"response": response})
 }
 
-// Helper Functions
-
 func (h *MinecraftHandler) writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(v)
 }
 
-// isCommandAllowed checks if a command matches the whitelist.
-// Supports both single-word commands (e.g., "list") and two-word prefixes (e.g., "time query").
+// isCommandAllowed uses a two-level check because some Minecraft commands
+// require specific subcommands (like "time query") while others are standalone.
 func isCommandAllowed(cmd string) bool {
 	parts := strings.Split(cmd, " ")
 	if allowedCommands[parts[0]] {
