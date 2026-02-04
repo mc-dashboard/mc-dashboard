@@ -26,27 +26,6 @@ type RCONClient struct {
 	timeout  time.Duration
 }
 
-// PlayerInfo represents a Minecraft player
-type PlayerInfo struct {
-	Name string `json:"name"`
-	UUID string `json:"uuid"`
-}
-
-// ServerStatus represents the current state of the Minecraft server
-type ServerStatus struct {
-	Online      bool         `json:"online"`
-	PlayerCount int          `json:"playerCount"`
-	MaxPlayers  int          `json:"maxPlayers"`
-	Players     []PlayerInfo `json:"players"`
-	LastUpdate  time.Time    `json:"lastUpdate"`
-}
-
-type listResponse struct {
-	PlayerCount int
-	MaxPlayers  int
-	Players     []PlayerInfo
-}
-
 func NewRCONClient(host, port, password string) *RCONClient {
 	return &RCONClient{
 		host:     host,

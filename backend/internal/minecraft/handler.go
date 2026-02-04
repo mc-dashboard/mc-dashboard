@@ -18,34 +18,21 @@ var allowedCommands = map[string]bool{
 	"difficulty":    true,
 }
 
-// ServerActionResponse is returned from server control endpoints
-type ServerActionResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	Result  any    `json:"result,omitempty"`
-}
-
-// PlayerListResponse is returned from the player list endpoint
-type PlayerListResponse struct {
-	Players []PlayerInfo `json:"players"`
-	Count   int          `json:"count"`
-}
-
 // MinecraftHandler handles HTTP requests for Minecraft server operations
 type MinecraftHandler struct {
-	LambdaService *lambda.FunctionWrapper
-	RCONClient    *RCONClient
+	lambdaService *lambda.FunctionWrapper
+	rconClient    *RCONClient
 }
 
 func NewMinecraftHandler(lambdaService *lambda.FunctionWrapper, rconClient *RCONClient) *MinecraftHandler {
 	return &MinecraftHandler{
-		LambdaService: lambdaService,
-		RCONClient:    rconClient,
+		lambdaService: lambdaService,
+		rconClient:    rconClient,
 	}
 }
 
 func (h *MinecraftHandler) StartServer(w http.ResponseWriter, r *http.Request) {
-	result := h.LambdaService.CallLambda("ec2-start")
+	result := h.lambdaService.CallLambda("ec2-start")
 
 	h.writeJSON(w, ServerActionResponse{
 		Success: true,
@@ -55,7 +42,7 @@ func (h *MinecraftHandler) StartServer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *MinecraftHandler) StopServer(w http.ResponseWriter, r *http.Request) {
-	result := h.LambdaService.CallLambda("ec2-stop")
+	result := h.lambdaService.CallLambda("ec2-stop")
 
 	h.writeJSON(w, ServerActionResponse{
 		Success: true,
@@ -65,12 +52,12 @@ func (h *MinecraftHandler) StopServer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *MinecraftHandler) GetServerStatus(w http.ResponseWriter, r *http.Request) {
-	if h.RCONClient == nil {
+	if h.rconClient == nil {
 		http.Error(w, "RCON client not initialized", http.StatusServiceUnavailable)
 		return
 	}
 
-	status, err := h.RCONClient.GetServerStatus()
+	status, err := h.rconClient.GetServerStatus()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -80,12 +67,12 @@ func (h *MinecraftHandler) GetServerStatus(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *MinecraftHandler) GetOnlinePlayers(w http.ResponseWriter, r *http.Request) {
-	if h.RCONClient == nil {
+	if h.rconClient == nil {
 		http.Error(w, "RCON client not initialized", http.StatusServiceUnavailable)
 		return
 	}
 
-	players, err := h.RCONClient.GetOnlinePlayers()
+	players, err := h.rconClient.GetOnlinePlayers()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -118,12 +105,12 @@ func (h *MinecraftHandler) ExecuteCommand(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if h.RCONClient == nil {
+	if h.rconClient == nil {
 		http.Error(w, "RCON client not initialized", http.StatusServiceUnavailable)
 		return
 	}
 
-	response, err := h.RCONClient.SendCommand(req.Command)
+	response, err := h.rconClient.SendCommand(req.Command)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -12,7 +12,7 @@ import (
 // Tests for RCON Availability
 
 func TestHandlers_RejectWhenRCONUnavailable(t *testing.T) {
-	handler := &MinecraftHandler{RCONClient: nil}
+	handler := &MinecraftHandler{rconClient: nil}
 
 	tests := []struct {
 		name    string
