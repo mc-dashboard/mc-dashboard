@@ -8,6 +8,7 @@ CREATE TABLE users (
 );
 
 INSERT INTO users (email, name) VALUES ('rsuri@irusmail.com', 'Rohan Suri');
+INSERT INTO users (email, name) VALUES ('147infiniti@gmail.com', 'Jonathan Oppenheimer');
 
 
 -- Trigger to auto-update updated_at
