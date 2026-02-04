@@ -16,7 +16,9 @@ import (
 )
 
 func main() {
-	godotenv.Load()
+	if err := godotenv.Load(); err != nil {
+		log.Printf("No .env file found: %v", err)
+	}
 
 	cfg, err := config.Load()
 	if err != nil {
@@ -32,7 +34,21 @@ func main() {
 	authService := auth.NewService(cfg, pool)
 
 	lambdaService := lambda.NewLambdaService(cfg)
-	minecraftHandler := minecraft.NewMinecraftHandler(lambdaService)
+
+	rconClient := minecraft.NewRCONClient(
+		cfg.MinecraftHost,
+		cfg.MinecraftRCONPort,
+		cfg.MinecraftRCONPassword,
+	)
+
+	if err := rconClient.Connect(); err != nil {
+		log.Printf("Failed to connect to Minecraft RCON: %v. RCON features will be unavailable.", err)
+	} else {
+		defer rconClient.Disconnect()
+		log.Println("Minecraft RCON connected successfully")
+	}
+
+	minecraftHandler := minecraft.NewMinecraftHandler(lambdaService, rconClient)
 
 
 	resolver := &graph.Resolver{DB: pool}

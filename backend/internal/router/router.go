@@ -41,6 +41,9 @@ func NewRouter(cfg *config.Config, authService *auth.Service, resolver *graph.Re
 
 		r.Post("/api/minecraft/start", minecraftHandler.StartServer)
 		r.Post("/api/minecraft/stop", minecraftHandler.StopServer)
+		r.Get("/api/minecraft/status", minecraftHandler.GetServerStatus)
+		r.Get("/api/minecraft/players", minecraftHandler.GetOnlinePlayers)
+		r.Post("/api/minecraft/command", minecraftHandler.ExecuteCommand)
 
 		srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{
 			Resolvers: resolver,

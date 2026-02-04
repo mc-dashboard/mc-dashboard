@@ -16,7 +16,7 @@ type Config struct {
 
 	AwsAccessKeyId     string
 	AwsSecretAccessKey string
-	AwsRegion		   string
+	AwsRegion          string
 
 	SessionSecret      string
 	SessionMaxAge      int
@@ -24,6 +24,10 @@ type Config struct {
 	FrontendURL        string
 	EnableDebugLogging bool
 	IsProduction       bool
+
+	MinecraftHost         string
+	MinecraftRCONPort     string
+	MinecraftRCONPassword string
 }
 
 func Load() (*Config, error) {
@@ -42,6 +46,9 @@ func Load() (*Config, error) {
 		FrontendURL:        getEnv("FRONTEND_URL", "http://localhost:3000"),
 		EnableDebugLogging: os.Getenv("ENABLE_DEBUG_LOGGING") == "true",
 		IsProduction:       os.Getenv("ENV") == "production",
+		MinecraftHost:         os.Getenv("MINECRAFT_HOST"),
+		MinecraftRCONPort:     getEnv("MINECRAFT_RCON_PORT", "25575"),
+		MinecraftRCONPassword: os.Getenv("MINECRAFT_RCON_PASSWORD"),
 	}
 
 	// Validate required fields
@@ -65,6 +72,12 @@ func Load() (*Config, error) {
 	}
 	if cfg.SessionSecret == "" {
 		return nil, fmt.Errorf("SESSION_SECRET is required")
+	}
+	if cfg.MinecraftHost == "" {
+		return nil, fmt.Errorf("MINECRAFT_HOST is required")
+	}
+	if cfg.MinecraftRCONPassword == "" {
+		return nil, fmt.Errorf("MINECRAFT_RCON_PASSWORD is required")
 	}
 
 	return cfg, nil
