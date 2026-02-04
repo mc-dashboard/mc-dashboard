@@ -2,3 +2,8 @@ tmp
 .env
 internal/graph/generated.go
 internal/graph/model/models_gen.go
+
+# Compiled binaries
+server
+*.exe
+cmd/server/server
