@@ -1,0 +1,77 @@
+version: "3"
+
+tasks:
+  default:
+    desc: List available tasks
+    cmd: task --list
+
+  lint-all:
+    desc: Run all linters
+    deps:
+      - task: lint-backend
+      - task: lint-frontend
+
+  build-all:
+    desc: Build backend and frontend
+    deps:
+      - task: build-backend
+      - task: build-frontend
+
+  test-all:
+    desc: Run all tests
+    deps:
+      - task: test-backend
+
+  ci:
+    desc: Run full CI locally (lint, build, test)
+    cmds:
+      - task: lint-all
+      - task: build-all
+      - task: test-all
+
+  gen:
+    desc: Regenerate GraphQL code
+    dir: backend/internal
+    cmd: go run github.com/99designs/gqlgen generate
+
+  dev:
+    desc: Start backend and frontend dev servers
+    deps:
+      - task: dev-backend
+      - task: dev-frontend
+
+  # Internal tasks
+  lint-backend:
+    internal: true
+    dir: backend
+    cmd: go tool golangci-lint run
+
+  lint-frontend:
+    internal: true
+    dir: frontend
+    cmd: bun run lint
+
+  build-backend:
+    internal: true
+    dir: backend
+    cmd: go build ./...
+
+  build-frontend:
+    internal: true
+    dir: frontend
+    cmd: bun run build
+
+  test-backend:
+    internal: true
+    dir: backend
+    cmd: go test ./... -v -count=1
+
+  dev-backend:
+    internal: true
+    dir: backend
+    cmd: go tool air
+
+  dev-frontend:
+    internal: true
+    dir: frontend
+    cmd: bun run dev
