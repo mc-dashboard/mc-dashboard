@@ -32,7 +32,7 @@ jobs:
           go-version-file: backend/go.mod
 
       - name: Generate GraphQL code
-        run: go run github.com/99designs/gqlgen generate
+        run: cd internal && go run github.com/99designs/gqlgen generate
 
       - uses: golangci/golangci-lint-action@v7
         with:
@@ -53,7 +53,7 @@ jobs:
           go-version-file: backend/go.mod
 
       - name: Generate GraphQL code
-        run: go run github.com/99designs/gqlgen generate
+        run: cd internal && go run github.com/99designs/gqlgen generate
 
       - name: Build
         run: go build ./...
@@ -72,7 +72,7 @@ jobs:
           go-version-file: backend/go.mod
 
       - name: Generate GraphQL code
-        run: go run github.com/99designs/gqlgen generate
+        run: cd internal && go run github.com/99designs/gqlgen generate
 
       - name: Test
         run: go test ./... -v -count=1
