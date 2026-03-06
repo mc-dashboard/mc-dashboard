@@ -1,4 +1,4 @@
-import { showTooltip, moveTooltip, hideTooltip } from "./McTooltip";
+import { showTooltip, moveTooltip, hideTooltip } from "./McTooltipController";
 import "./minecraft-ui.css";
 
 export interface InvSlotProps {

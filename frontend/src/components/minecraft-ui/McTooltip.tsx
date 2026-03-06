@@ -1,36 +1,15 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { bindTooltipSetter, type TooltipState } from "./McTooltipController";
 import "./minecraft-ui.css";
-
-interface TooltipState {
-  text: string;
-  x: number;
-  y: number;
-}
-
-type SetTooltip = React.Dispatch<React.SetStateAction<TooltipState | null>>;
-
-let setGlobalTooltip: SetTooltip | null = null;
-
-export function showTooltip(text: string, x: number, y: number) {
-  setGlobalTooltip?.({ text, x, y });
-}
-
-export function moveTooltip(x: number, y: number) {
-  setGlobalTooltip?.((prev) => (prev ? { ...prev, x, y } : null));
-}
-
-export function hideTooltip() {
-  setGlobalTooltip?.(null);
-}
 
 export default function McTooltipPortal() {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
   useEffect(() => {
-    setGlobalTooltip = setTooltip;
+    bindTooltipSetter(setTooltip);
     return () => {
-      setGlobalTooltip = null;
+      bindTooltipSetter(null);
     };
   }, []);
 
