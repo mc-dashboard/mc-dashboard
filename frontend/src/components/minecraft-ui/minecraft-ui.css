@@ -1,0 +1,246 @@
+/* ── Minecraft Font ── */
+@font-face {
+  font-family: Minecraft;
+  src:
+    url("https://minecraft.wiki/images/Minecraft.woff2?edfbc") format("woff2"),
+    url("https://minecraft.wiki/images/Minecraft.woff?ade8a") format("woff");
+}
+
+/* ── Page Background ── */
+
+.mc-page {
+  min-height: 100vh;
+  background-color: #593D29;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+    url("https://minecraft.wiki/images/Dirt_(texture)_JE2_BE2.png");
+  background-size: auto, 64px 64px;
+  image-rendering: pixelated;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 96px 16px 32px;
+  gap: 24px;
+  position: relative;
+}
+
+/* Grass strip across the top */
+.mc-page::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background-image:
+    linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+    url("https://minecraft.wiki/images/Grass_Block_(side_texture)_JE2_BE2.png");
+  background-size: auto, 64px 64px;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+/* ── Minecraft Button ── */
+/* Uses the actual widget button textures from the game */
+
+.mc-btn {
+  display: inline-block;
+  position: relative;
+  min-width: 150px;
+  height: 40px;
+  padding: 0 16px;
+  border: 2px solid;
+  border-color: #dbdbdb #5b5b5b #5b5b5b #dbdbdb;
+  background-color: #8b8b8b;
+  border-image: url("https://minecraft.wiki/images/Widget_button.png") 4 fill / 4px / 0 stretch;
+  color: #e0e0e0;
+  font-family: Minecraft, sans-serif;
+  font-size: 16px;
+  text-shadow: 2px 2px 0 #3f3f3f;
+  cursor: pointer;
+  image-rendering: pixelated;
+  white-space: nowrap;
+  line-height: 36px;
+}
+
+.mc-btn:hover {
+  border-image-source: url("https://minecraft.wiki/images/Widget_button_highlighted.png");
+  color: #ffffa0;
+}
+
+.mc-btn:active {
+  border-image-source: url("https://minecraft.wiki/images/Widget_button.png");
+  color: #c0c0c0;
+}
+
+.mc-btn:disabled {
+  border-image-source: url("https://minecraft.wiki/images/Widget_button_disabled.png");
+  color: #6a6a6a;
+  text-shadow: 2px 2px 0 #1e1e1e;
+  cursor: not-allowed;
+}
+
+/* ── Panel Container (for grouping UI elements) ── */
+
+.mc-panel {
+  background-color: #c6c6c6;
+  border: 2px solid;
+  border-color: #dbdbdb #5b5b5b #5b5b5b #dbdbdb;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.mc-panel-title {
+  font-family: Minecraft, sans-serif;
+  font-size: 16px;
+  color: #404040;
+  margin-bottom: 4px;
+}
+
+/* ── Status Text ── */
+
+.mc-status {
+  font-family: Minecraft, sans-serif;
+  font-size: 16px;
+  color: #ffff55;
+  text-shadow: 2px 2px 0 #3f3f15;
+}
+
+/* ── Page Title ── */
+
+.mc-title {
+  font-family: Minecraft, sans-serif;
+  font-size: 32px;
+  color: #fff;
+  text-shadow: 3px 3px 0 #3f3f3f;
+  text-align: center;
+}
+
+/* ── Inventory Slot ── */
+/* Exact styles from https://minecraft.wiki */
+
+.invslot {
+  position: relative;
+  display: inline-block;
+  background: #8b8b8b no-repeat center center / 32px 32px;
+  border: 2px solid;
+  border-color: #373737 #fff #fff #373737;
+  width: 32px;
+  height: 32px;
+  font-size: 16px;
+  line-height: 1;
+  text-align: left;
+  vertical-align: bottom;
+  image-rendering: pixelated;
+}
+
+/* Corner pixel patches to complete the beveled look */
+.invslot::before,
+.invslot::after {
+  content: "";
+  position: absolute;
+  background-color: #8b8b8b;
+  height: 2px;
+  width: 2px;
+  pointer-events: none;
+}
+
+.invslot::before {
+  bottom: -2px;
+  left: -2px;
+}
+
+.invslot::after {
+  top: -2px;
+  right: -2px;
+}
+
+/* ── Slot Item ── */
+
+.invslot-item {
+  position: relative;
+  display: block;
+  margin: -2px;
+  padding: 2px;
+  width: 32px;
+  height: 32px;
+}
+
+.invslot-item-image {
+  display: block;
+  width: 32px;
+  height: 32px;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.invslot-item:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Cursor-following Tooltip ── */
+/* Exact styles from https://minecraft.wiki site.styles #minetip-tooltip */
+
+.mc-tooltip {
+  position: fixed;
+  background-color: rgba(16, 0, 16, 0.94);
+  color: #fbfbfb;
+  padding: 0.375em;
+  font-family: Minecraft, sans-serif;
+  font-size: 16px;
+  word-spacing: 4px;
+  white-space: nowrap;
+  line-height: 1.25em;
+  pointer-events: none;
+  z-index: 9999;
+  text-shadow: 0.125em 0.125em 0 #3e3e3e;
+}
+
+/* Dark side-borders that extend outward, inset from top/bottom (corner gap) */
+.mc-tooltip::before {
+  content: "";
+  position: absolute;
+  top: 0.125em;
+  right: -0.125em;
+  bottom: 0.125em;
+  left: -0.125em;
+  border: 0.15em solid rgba(16, 0, 16, 0.94);
+  border-style: none solid;
+}
+
+/* Purple gradient inner border, also inset from top/bottom (corner gap) */
+.mc-tooltip::after {
+  content: "";
+  position: absolute;
+  top: 0.125em;
+  right: 0;
+  bottom: 0.125em;
+  left: 0;
+  border: 0.125em solid #2d0a63;
+  border-image: linear-gradient(
+    rgba(80, 0, 255, 0.31),
+    rgba(40, 0, 127, 0.31)
+  ) 1;
+}
+
+/* ── MCUI Container ── */
+
+.mcui {
+  display: inline-block;
+  position: relative;
+  background-color: #c6c6c6;
+  border: 2px solid;
+  border-color: #dbdbdb #5b5b5b #5b5b5b #dbdbdb;
+  padding: 6px;
+  text-align: left;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+
+.mcui-row {
+  display: block;
+  font-size: 0; /* collapse whitespace between inline-block slots */
+}
