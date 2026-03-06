@@ -35,10 +35,18 @@ tasks:
     cmd: go run github.com/99designs/gqlgen generate
 
   dev:
-    desc: Start backend and frontend dev servers
+    desc: Start database, backend, and frontend dev servers
     deps:
+      - task: dev-db
       - task: dev-backend
       - task: dev-frontend
+
+  down:
+    desc: Stop database and all dev services
+    cmds:
+      - pkill air || true
+      - pkill -f "bun run dev" || true
+      - docker compose -f backend/docker-compose.yml down
 
   # Internal tasks
   lint-backend:
@@ -65,6 +73,11 @@ tasks:
     internal: true
     dir: backend
     cmd: go test ./... -v -count=1
+
+  dev-db:
+    internal: true
+    dir: backend
+    cmd: docker compose up -d
 
   dev-backend:
     internal: true
