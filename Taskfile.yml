@@ -46,7 +46,7 @@ tasks:
     cmds:
       - pkill air || true
       - pkill -f "bun run dev" || true
-      - docker compose -f backend/docker-compose.yml down
+      - docker compose -f backend/docker-compose.yml down || true
 
   # Internal tasks
   lint-backend:
