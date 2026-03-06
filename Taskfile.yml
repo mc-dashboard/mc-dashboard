@@ -1,0 +1,90 @@
+version: "3"
+
+tasks:
+  default:
+    desc: List available tasks
+    cmd: task --list
+
+  lint-all:
+    desc: Run all linters
+    deps:
+      - task: lint-backend
+      - task: lint-frontend
+
+  build-all:
+    desc: Build backend and frontend
+    deps:
+      - task: build-backend
+      - task: build-frontend
+
+  test-all:
+    desc: Run all tests
+    deps:
+      - task: test-backend
+
+  ci:
+    desc: Run full CI locally (lint, build, test)
+    cmds:
+      - task: lint-all
+      - task: build-all
+      - task: test-all
+
+  gen:
+    desc: Regenerate GraphQL code
+    dir: backend/internal
+    cmd: go run github.com/99designs/gqlgen generate
+
+  dev:
+    desc: Start database, backend, and frontend dev servers
+    deps:
+      - task: dev-db
+      - task: dev-backend
+      - task: dev-frontend
+
+  down:
+    desc: Stop database and all dev services
+    cmds:
+      - pkill -f "go tool air" || true
+      - pkill -f "bun run dev" || true
+      - docker compose -f backend/docker-compose.yml down || true
+
+  # Internal tasks
+  lint-backend:
+    internal: true
+    dir: backend
+    cmd: go tool golangci-lint run
+
+  lint-frontend:
+    internal: true
+    dir: frontend
+    cmd: bun run lint
+
+  build-backend:
+    internal: true
+    dir: backend
+    cmd: go build ./...
+
+  build-frontend:
+    internal: true
+    dir: frontend
+    cmd: bun run build
+
+  test-backend:
+    internal: true
+    dir: backend
+    cmd: go test ./... -v -count=1
+
+  dev-db:
+    internal: true
+    dir: backend
+    cmd: docker compose up -d
+
+  dev-backend:
+    internal: true
+    dir: backend
+    cmd: go tool air
+
+  dev-frontend:
+    internal: true
+    dir: frontend
+    cmd: bun run dev
