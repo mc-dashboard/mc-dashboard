@@ -44,7 +44,7 @@ tasks:
   down:
     desc: Stop database and all dev services
     cmds:
-      - pkill air || true
+      - pkill -f "go tool air" || true
       - pkill -f "bun run dev" || true
       - docker compose -f backend/docker-compose.yml down || true
 
