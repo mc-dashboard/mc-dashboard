@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { API_BASE_URL } from "../libs/api";
 
 interface User {
@@ -10,6 +10,12 @@ export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const refetch = useCallback(() => {
+    fetch(`${API_BASE_URL}/api/user`, { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setUser(data?.email ? data : null));
+  }, []);
+
   useEffect(() => {
     fetch(`${API_BASE_URL}/api/user`, { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
@@ -17,5 +23,5 @@ export function useAuth() {
       .finally(() => setLoading(false));
   }, []);
 
-  return { user, loading };
+  return { user, loading, refetch };
 }
