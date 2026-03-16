@@ -11,16 +11,17 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   const refetch = useCallback(() => {
-    setLoading(true);
+    fetch(`${API_BASE_URL}/api/user`, { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => setUser(data?.email ? data : null));
+  }, []);
+
+  useEffect(() => {
     fetch(`${API_BASE_URL}/api/user`, { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setUser(data?.email ? data : null))
       .finally(() => setLoading(false));
   }, []);
-
-  useEffect(() => {
-    refetch();
-  }, [refetch]);
 
   return { user, loading, refetch };
 }
