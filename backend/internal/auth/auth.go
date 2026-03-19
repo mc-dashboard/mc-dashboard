@@ -71,7 +71,10 @@ func (s *Service) HandleLogin(w http.ResponseWriter, r *http.Request) {
 
 	session, _ := s.getSession(r)
 	session.Values["state"] = state
-	session.Save(r, w)
+	if err := session.Save(r, w); err != nil {
+		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+		return
+	}
 
 	url := s.oauthConfig.AuthCodeURL(state)
 	http.Redirect(w, r, url, http.StatusTemporaryRedirect)
@@ -94,7 +97,7 @@ func (s *Service) HandleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	client := s.oauthConfig.Client(context.Background(), token)
-	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo")
+	resp, err := client.Get("https://www.googleapis.com/oauth2/v2/userinfo") //nolint:gosec // URL is hardcoded, not user-controlled
 	if err != nil {
 		http.Error(w, "Failed to get user info: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -122,7 +125,10 @@ func (s *Service) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	session.Values["email"] = userInfo.Email
 	session.Values["name"] = userInfo.Name
-	session.Save(r, w)
+	if err := session.Save(r, w); err != nil {
+		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+		return
+	}
 
 	http.Redirect(w, r, s.frontendURL, http.StatusSeeOther)
 }
@@ -131,10 +137,13 @@ func (s *Service) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	session, _ := s.getSession(r)
 	session.Values["email"] = ""
 	session.Options.MaxAge = -1
-	session.Save(r, w)
+	if err := session.Save(r, w); err != nil {
+		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
+	_ = json.NewEncoder(w).Encode(map[string]string{
 		"message": "logged out",
 	})
 }
@@ -146,7 +155,7 @@ func (s *Service) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 	name, _ := session.Values["name"].(string)
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{
+	_ = json.NewEncoder(w).Encode(map[string]string{
 		"email": email,
 		"name":  name,
 	})
@@ -154,6 +163,6 @@ func (s *Service) HandleGetUser(w http.ResponseWriter, r *http.Request) {
 
 func generateRandomState() string {
 	b := make([]byte, 32)
-	rand.Read(b)
+	_, _ = rand.Read(b)
 	return base64.URLEncoding.EncodeToString(b)
 }

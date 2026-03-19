@@ -17,7 +17,7 @@ type Config struct {
 	AwsSecretAccessKey string
 	AwsRegion          string
 
-	SessionSecret string
+	SessionSecret string //nolint:gosec // field name, not an actual secret value
 	SessionMaxAge int
 
 	FrontendURL        string
