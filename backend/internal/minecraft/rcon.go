@@ -137,7 +137,7 @@ func (c *RCONClient) GetServerStatus() (*ServerStatus, error) {
 
 func parseListResponse(response string) listResponse {
 	var result listResponse
-	fmt.Sscanf(response, "There are %d of a max of %d", &result.PlayerCount, &result.MaxPlayers)
+	_, _ = fmt.Sscanf(response, "There are %d of a max of %d", &result.PlayerCount, &result.MaxPlayers)
 
 	parts := strings.Split(response, ": ")
 	if len(parts) < 2 {

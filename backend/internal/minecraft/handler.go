@@ -121,7 +121,7 @@ func (h *MinecraftHandler) ExecuteCommand(w http.ResponseWriter, r *http.Request
 
 func (h *MinecraftHandler) writeJSON(w http.ResponseWriter, v any) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(v)
+	_ = json.NewEncoder(w).Encode(v)
 }
 
 // isCommandAllowed uses a two-level check because some Minecraft commands
