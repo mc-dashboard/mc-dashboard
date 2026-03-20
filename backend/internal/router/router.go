@@ -31,18 +31,18 @@ func NewRouter(cfg *config.Config, authService *auth.Service, resolver *graph.Re
 	// Public routes
 	r.Get("/login", authService.HandleLogin)
 	r.Get("/auth/google/callback", authService.HandleCallback)
+	r.Get("/api/user", authService.HandleGetUser)
+	r.Get("/api/minecraft/status", minecraftHandler.GetServerStatus)
+	r.Get("/api/minecraft/players", minecraftHandler.GetOnlinePlayers)
 
 	// Protected routes
 	r.Group(func(r chi.Router) {
 		r.Use(authService.RequireAuth)
 
 		r.Get("/logout", authService.HandleLogout)
-		r.Get("/api/user", authService.HandleGetUser)
 
 		r.Post("/api/minecraft/start", minecraftHandler.StartServer)
 		r.Post("/api/minecraft/stop", minecraftHandler.StopServer)
-		r.Get("/api/minecraft/status", minecraftHandler.GetServerStatus)
-		r.Get("/api/minecraft/players", minecraftHandler.GetOnlinePlayers)
 		r.Post("/api/minecraft/command", minecraftHandler.ExecuteCommand)
 
 		srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{
