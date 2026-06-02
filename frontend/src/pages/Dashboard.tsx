@@ -13,11 +13,10 @@ export default function Dashboard() {
         method: "POST",
         credentials: "include",
       });
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : {};
+      const data = await res.json();
       setStatus(res.ok ? data.message ?? "Server started" : data.error ?? "Failed to start server");
     } catch (error) {
-      setStatus("Request failed with error: " + (error as Error).message);
+      setStatus("Request failed with error: " + String(error));
     }
   };
 
@@ -31,7 +30,7 @@ export default function Dashboard() {
       const data = await res.json();
       setStatus(res.ok ? data.message ?? "Server stopped" : data.error ?? "Failed to stop server");
     } catch (error) {
-      setStatus("Request failed with error: " + (error as Error).message);
+      setStatus("Request failed with error: " + String(error));
     }
   };
 
