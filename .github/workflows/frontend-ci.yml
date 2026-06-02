@@ -3,12 +3,8 @@ name: Frontend CI
 on:
   push:
     branches: [main]
-    paths:
-      - frontend/**
   pull_request:
     branches: [main]
-    paths:
-      - frontend/**
 
 permissions:
   contents: read
@@ -18,8 +14,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
+    steps:
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            frontend:
+              - frontend/**
+
   lint:
     name: Lint
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -37,6 +48,8 @@ jobs:
 
   build:
     name: Build
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
