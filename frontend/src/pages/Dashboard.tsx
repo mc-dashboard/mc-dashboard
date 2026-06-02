@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { API_BASE_URL } from "../libs/api";
 import { InvGrid, McButton } from "../components/minecraft-ui";
@@ -20,15 +19,8 @@ const DEMO_ITEMS: (string | null)[] = [
 ];
 
 export default function Dashboard() {
-  const { user, loading } = useAuth();
-  const navigate = useNavigate();
+  const { user, loading, refetch } = useAuth();
   const [status, setStatus] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate("/");
-    }
-  }, [user, loading, navigate]);
 
   const handleStart = async () => {
     setStatus(null);
@@ -37,11 +29,10 @@ export default function Dashboard() {
         method: "POST",
         credentials: "include",
       });
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : {};
+      const data = await res.json();
       setStatus(res.ok ? data.message ?? "Server started" : data.error ?? "Failed to start server");
     } catch (error) {
-      setStatus("Request failed with error: " + error);
+      setStatus("Request failed with error: " + String(error));
     }
   };
 
@@ -52,12 +43,20 @@ export default function Dashboard() {
         method: "POST",
         credentials: "include",
       });
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : {};
+      const data = await res.json();
       setStatus(res.ok ? data.message ?? "Server stopped" : data.error ?? "Failed to stop server");
     } catch (error) {
-      setStatus("Request failed with error: " + error);
+      setStatus("Request failed with error: " + String(error));
     }
+  };
+
+  const handleLogin = () => {
+    window.location.href = `${API_BASE_URL}/login`;
+  };
+
+  const handleLogout = async () => {
+    await fetch(`${API_BASE_URL}/logout`, { credentials: "include" });
+    refetch();
   };
 
   if (loading) return null;
@@ -66,9 +65,20 @@ export default function Dashboard() {
     <div className="mc-page">
       <h1 className="mc-title">Kraft Bois</h1>
 
+      <div style={{ position: "absolute", top: 12, right: 12, display: "flex", alignItems: "center", gap: 8, zIndex: 1 }}>
+        {user ? (
+          <>
+            <span className="mc-status" style={{ fontSize: 14 }}>{user.name}</span>
+            <McButton onClick={handleLogout}>Logout</McButton>
+          </>
+        ) : (
+          <McButton onClick={handleLogin}>Login with Google</McButton>
+        )}
+      </div>
+
       <div style={{ display: "flex", gap: 12 }}>
-        <McButton onClick={handleStart}>Start Server</McButton>
-        <McButton onClick={handleStop}>Stop Server</McButton>
+        <McButton onClick={handleStart} disabled={!user}>Start Server</McButton>
+        <McButton onClick={handleStop} disabled={!user}>Stop Server</McButton>
       </div>
 
       {status && <p className="mc-status">{status}</p>}

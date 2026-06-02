@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { API_BASE_URL } from "../libs/api";
 
 interface User {
@@ -6,16 +6,29 @@ interface User {
   name: string;
 }
 
-export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+interface AuthState {
+  user: User | null;
+  loading: boolean;
+}
 
-  useEffect(() => {
+export function useAuth() {
+  const [{ user, loading }, setAuth] = useState<AuthState>({ user: null, loading: true });
+
+  const refetch = useCallback(() => {
     fetch(`${API_BASE_URL}/api/user`, { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setUser(data?.email ? data : null))
-      .finally(() => setLoading(false));
+      .then((data) => setAuth({ user: data?.email ? data : null, loading: false }))
+      .catch(() => setAuth({ user: null, loading: false }));
   }, []);
 
-  return { user, loading };
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${API_BASE_URL}/api/user`, { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (!cancelled) setAuth({ user: data?.email ? data : null, loading: false }); })
+      .catch(() => { if (!cancelled) setAuth({ user: null, loading: false }); });
+    return () => { cancelled = true; };
+  }, []);
+
+  return { user, loading, refetch };
 }
