@@ -15,7 +15,6 @@ export function useAuth() {
   const [{ user, loading }, setAuth] = useState<AuthState>({ user: null, loading: true });
 
   const refetch = useCallback(() => {
-    setAuth((s) => ({ ...s, loading: true }));
     fetch(`${API_BASE_URL}/api/user`, { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data) => setAuth({ user: data?.email ? data : null, loading: false }))
