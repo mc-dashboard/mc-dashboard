@@ -186,6 +186,7 @@
 
 .mc-tooltip {
   position: fixed;
+  transform: translateY(-100%);
   background-color: rgba(16, 0, 16, 0.94);
   color: #fbfbfb;
   padding: 0.375em;

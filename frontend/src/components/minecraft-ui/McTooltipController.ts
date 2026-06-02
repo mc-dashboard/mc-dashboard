@@ -8,20 +8,26 @@ export interface TooltipState {
 
 type SetTooltip = Dispatch<SetStateAction<TooltipState | null>>;
 
-let setGlobalTooltip: SetTooltip | null = null;
+class TooltipController {
+  private setter: SetTooltip | null = null;
 
-export function bindTooltipSetter(setter: SetTooltip | null) {
-  setGlobalTooltip = setter;
+  // Arrow fields so methods stay bound when passed as event handlers
+  // (e.g. onMouseLeave={tooltipController.hide}).
+  bind = (setter: SetTooltip | null) => {
+    this.setter = setter;
+  };
+
+  show = (text: string, x: number, y: number) => {
+    this.setter?.({ text, x, y });
+  };
+
+  move = (x: number, y: number) => {
+    this.setter?.((prev) => (prev ? { ...prev, x, y } : null));
+  };
+
+  hide = () => {
+    this.setter?.(null);
+  };
 }
 
-export function showTooltip(text: string, x: number, y: number) {
-  setGlobalTooltip?.({ text, x, y });
-}
-
-export function moveTooltip(x: number, y: number) {
-  setGlobalTooltip?.((prev) => (prev ? { ...prev, x, y } : null));
-}
-
-export function hideTooltip() {
-  setGlobalTooltip?.(null);
-}
+export const tooltipController = new TooltipController();

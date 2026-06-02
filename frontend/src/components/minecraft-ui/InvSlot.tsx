@@ -1,4 +1,4 @@
-import { showTooltip, moveTooltip, hideTooltip } from "./McTooltipController";
+import { tooltipController } from "./McTooltipController";
 import "./minecraft-ui.css";
 
 export interface InvSlotProps {
@@ -21,10 +21,10 @@ export default function InvSlot({ item, className }: InvSlotProps) {
         <span
           className="invslot-item"
           onMouseEnter={(e) =>
-            showTooltip(itemDisplayName(item), e.clientX, e.clientY)
+            tooltipController.show(itemDisplayName(item), e.clientX, e.clientY)
           }
-          onMouseMove={(e) => moveTooltip(e.clientX, e.clientY)}
-          onMouseLeave={hideTooltip}
+          onMouseMove={(e) => tooltipController.move(e.clientX, e.clientY)}
+          onMouseLeave={tooltipController.hide}
         >
           <img
             src={itemImageUrl(item)}

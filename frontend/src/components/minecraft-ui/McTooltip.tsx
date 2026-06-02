@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { bindTooltipSetter, type TooltipState } from "./McTooltipController";
+import { tooltipController, type TooltipState } from "./McTooltipController";
 import "./minecraft-ui.css";
 
 export default function McTooltipPortal() {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);
 
   useEffect(() => {
-    bindTooltipSetter(setTooltip);
+    tooltipController.bind(setTooltip);
     return () => {
-      bindTooltipSetter(null);
+      tooltipController.bind(null);
     };
   }, []);
 
@@ -21,7 +21,6 @@ export default function McTooltipPortal() {
       style={{
         left: tooltip.x + 12,
         top: tooltip.y - 12,
-        transform: "translateY(-100%)",
       }}
     >
       {tooltip.text}
