@@ -1,14 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { API_BASE_URL } from "../libs/api";
 
 export default function Dashboard() {
   const { user, loading, refetch } = useAuth();
   const [status, setStatus] = useState<string | null>(null);
-
-  useEffect(() => {
-    console.log(status);
-  }, [status]);
 
   const handleStart = async () => {
     setStatus(null);
@@ -32,8 +28,7 @@ export default function Dashboard() {
         method: "POST",
         credentials: "include",
       });
-      const text = await res.text();
-      const data = text ? JSON.parse(text) : {};
+      const data = await res.json();
       setStatus(res.ok ? data.message ?? "Server stopped" : data.error ?? "Failed to stop server");
     } catch (error) {
       setStatus("Request failed with error: " + error);
@@ -52,20 +47,22 @@ export default function Dashboard() {
   if (loading) return null;
 
   return (
-    <div>
-      <div style={{ display: "flex", justifyContent: "flex-end", padding: "8px" }}>
+    <div style={{ padding: "16px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+          <button onClick={handleStart} disabled={!user}>Start Server</button>
+          <button onClick={handleStop} disabled={!user}>Stop Server</button>
+        </div>
         {user ? (
-          <>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span>{user.name}</span>
-            <button onClick={handleLogout} style={{ marginLeft: "8px" }}>Logout</button>
-          </>
+            <button onClick={handleLogout}>Logout</button>
+          </div>
         ) : (
           <button onClick={handleLogin}>Login with Google</button>
         )}
       </div>
-      <button onClick={handleStart} disabled={!user}>Start Server</button>
-      <button onClick={handleStop} disabled={!user}>Stop Server</button>
-      {status && <p>{status}</p>}
+      {status && <p style={{ marginTop: "16px" }}>{status}</p>}
     </div>
   );
 }
