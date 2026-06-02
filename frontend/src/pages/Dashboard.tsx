@@ -65,17 +65,20 @@ export default function Dashboard() {
     <div className="mc-page">
       <h1 className="mc-title">Kraft Bois</h1>
 
-      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-        <McButton onClick={handleStart} disabled={!user}>Start Server</McButton>
-        <McButton onClick={handleStop} disabled={!user}>Stop Server</McButton>
+      <div style={{ position: "absolute", top: 12, right: 12, display: "flex", alignItems: "center", gap: 8, zIndex: 1 }}>
         {user ? (
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <>
             <span className="mc-status" style={{ fontSize: 14 }}>{user.name}</span>
             <McButton onClick={handleLogout}>Logout</McButton>
-          </div>
+          </>
         ) : (
           <McButton onClick={handleLogin}>Login with Google</McButton>
         )}
+      </div>
+
+      <div style={{ display: "flex", gap: 12 }}>
+        <McButton onClick={handleStart} disabled={!user}>Start Server</McButton>
+        <McButton onClick={handleStop} disabled={!user}>Stop Server</McButton>
       </div>
 
       {status && <p className="mc-status">{status}</p>}

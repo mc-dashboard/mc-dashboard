@@ -52,7 +52,7 @@ func NewRouter(cfg *config.Config, authService *auth.Service, resolver *graph.Re
 	})
 
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("Hello World!"))
+		_, _ = w.Write([]byte("go away you're not supposed to be here"))
 	})
 
 	return r
