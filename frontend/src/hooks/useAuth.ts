@@ -6,25 +6,28 @@ interface User {
   name: string;
 }
 
+interface AuthState {
+  user: User | null;
+  loading: boolean;
+}
+
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [{ user, loading }, setAuth] = useState<AuthState>({ user: null, loading: true });
 
   const refetch = useCallback(() => {
-    setLoading(true);
+    setAuth((s) => ({ ...s, loading: true }));
     fetch(`${API_BASE_URL}/api/user`, { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => setUser(data?.email ? data : null))
-      .finally(() => setLoading(false));
+      .then((data) => setAuth({ user: data?.email ? data : null, loading: false }))
+      .catch(() => setAuth({ user: null, loading: false }));
   }, []);
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
     fetch(`${API_BASE_URL}/api/user`, { credentials: "include" })
       .then((res) => (res.ok ? res.json() : null))
-      .then((data) => { if (!cancelled) setUser(data?.email ? data : null); })
-      .finally(() => { if (!cancelled) setLoading(false); });
+      .then((data) => { if (!cancelled) setAuth({ user: data?.email ? data : null, loading: false }); })
+      .catch(() => { if (!cancelled) setAuth({ user: null, loading: false }); });
     return () => { cancelled = true; };
   }, []);
 
