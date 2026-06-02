@@ -18,7 +18,15 @@ export function useAuth() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => { refetch(); }, [refetch]);
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    fetch(`${API_BASE_URL}/api/user`, { credentials: "include" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => { if (!cancelled) setUser(data?.email ? data : null); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   return { user, loading, refetch };
 }
