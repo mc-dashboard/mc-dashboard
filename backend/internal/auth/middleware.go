@@ -14,7 +14,7 @@ func (s *Service) RequireAuth(next http.Handler) http.Handler {
 		if err != nil {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{
+			_ = json.NewEncoder(w).Encode(map[string]string{
 				"error":    "unauthorized, no session found",
 				"redirect": "/login",
 			})
@@ -25,7 +25,7 @@ func (s *Service) RequireAuth(next http.Handler) http.Handler {
 		if !ok || email == "" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(map[string]string{
+			_ = json.NewEncoder(w).Encode(map[string]string{
 				"error":    "unauthorized, no email found",
 				"redirect": "/login",
 			})
@@ -36,7 +36,7 @@ func (s *Service) RequireAuth(next http.Handler) http.Handler {
 		if err != nil || !allowed {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusForbidden)
-			json.NewEncoder(w).Encode(map[string]string{
+			_ = json.NewEncoder(w).Encode(map[string]string{
 				"error": "forbidden, email not authorized",
 			})
 			return

@@ -75,7 +75,9 @@ func TestRCONIntegration(t *testing.T) {
 
 	client := NewRCONClient(host, port, password)
 	require.NoError(t, client.Connect())
-	defer client.Disconnect()
+	defer func() {
+		require.NoError(t, client.Disconnect(), "client.Disconnect()")
+	}()
 
 	status, err := client.GetServerStatus()
 	require.NoError(t, err)

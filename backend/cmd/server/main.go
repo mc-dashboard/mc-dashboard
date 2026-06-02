@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/joho/godotenv"
 
@@ -16,18 +17,24 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		log.Fatal(err)
+	}
+}
+
+func run() error {
 	if err := godotenv.Load(); err != nil {
 		log.Printf("No .env file found: %v", err)
 	}
 
 	cfg, err := config.Load()
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 
 	pool, err := db.InitDB(cfg.DatabaseURL)
 	if err != nil {
-		log.Fatal(err)
+		return err
 	}
 	defer pool.Close()
 
@@ -44,7 +51,11 @@ func main() {
 	if err := rconClient.Connect(); err != nil {
 		log.Printf("Failed to connect to Minecraft RCON: %v. RCON features will be unavailable.", err)
 	} else {
-		defer rconClient.Disconnect()
+		defer func() {
+			if err := rconClient.Disconnect(); err != nil {
+				log.Printf("Failed to disconnect RCON: %v", err)
+			}
+		}()
 		log.Println("Minecraft RCON connected successfully")
 	}
 
@@ -55,7 +66,12 @@ func main() {
 	r := router.NewRouter(cfg, authService, resolver, minecraftHandler)
 
 	log.Printf("Server running on http://localhost:%s", cfg.ServerPort)
-	if err := http.ListenAndServe(":"+cfg.ServerPort, r); err != nil {
-		log.Fatal(err)
+	srv := &http.Server{
+		Addr:         ":" + cfg.ServerPort,
+		Handler:      r,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  60 * time.Second,
 	}
+	return srv.ListenAndServe()
 }
