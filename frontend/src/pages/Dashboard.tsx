@@ -17,7 +17,7 @@ export default function Dashboard() {
       const data = text ? JSON.parse(text) : {};
       setStatus(res.ok ? data.message ?? "Server started" : data.error ?? "Failed to start server");
     } catch (error) {
-      setStatus("Request failed with error: " + error);
+      setStatus("Request failed with error: " + (error as Error).message);
     }
   };
 
@@ -31,7 +31,7 @@ export default function Dashboard() {
       const data = await res.json();
       setStatus(res.ok ? data.message ?? "Server stopped" : data.error ?? "Failed to stop server");
     } catch (error) {
-      setStatus("Request failed with error: " + error);
+      setStatus("Request failed with error: " + (error as Error).message);
     }
   };
 
