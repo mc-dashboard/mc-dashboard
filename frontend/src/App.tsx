@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router";
 import Dashboard from "./pages/Dashboard";
+import { McTooltipPortal } from "./components/minecraft-ui";
 
 function App() {
   return (
@@ -7,6 +8,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Dashboard />} />
       </Routes>
+      <McTooltipPortal />
     </BrowserRouter>
   );
 }
