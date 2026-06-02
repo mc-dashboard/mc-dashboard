@@ -4,6 +4,9 @@ import { useAuth } from "../hooks/useAuth";
 import { API_BASE_URL } from "../libs/api";
 import { InvGrid, McButton } from "../components/minecraft-ui";
 
+// TODO: Temporary placeholder data. Will be replaced with live inventory
+// fetched from the backend (typed at the API boundary), at which point these
+// hardcoded item IDs go away.
 const DEMO_ITEMS: (string | null)[] = [
   "Diamond_Helmet",    "Diamond_Chestplate", "Diamond_Leggings",
   "Diamond_Boots",     "Shield",             "Bow",
