@@ -4,19 +4,18 @@ A web dashboard for managing a Minecraft server — start/stop the server on dem
 
 ## Architecture
 
-```
-┌─────────────────┐     GraphQL      ┌─────────────────┐
-│  React Frontend │ ◄──────────────► │   Go Backend    │
-│  (Cloudflare    │                  │   (chi router + │
-│   Workers)      │                  │    gqlgen)      │
-└─────────────────┘                  └────────┬────────┘
-                                              │
-                  ┌───────────────────────────┼────────────────────────┐
-                  │                           │                        │
-         ┌────────▼────────┐       ┌──────────▼──────────┐  ┌────────▼────────┐
-         │   PostgreSQL    │       │    AWS Lambda       │  │  Minecraft RCON │
-         │   (server data) │       │  (start/stop EC2)   │  │  (server status)│
-         └─────────────────┘       └─────────────────────┘  └─────────────────┘
+```mermaid
+graph TD
+    FE["React Frontend\n(Cloudflare Workers)"]
+    BE["Go Backend\n(chi + gqlgen)"]
+    DB[(PostgreSQL)]
+    Lambda["AWS Lambda\n(start/stop EC2)"]
+    RCON["Minecraft RCON\n(server status)"]
+
+    FE <-->|GraphQL| BE
+    BE --- DB
+    BE --- Lambda
+    BE --- RCON
 ```
 
 - **Frontend**: React 19 + Apollo Client, deployed to Cloudflare Workers via Wrangler
