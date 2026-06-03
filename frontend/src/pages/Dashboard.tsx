@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { API_BASE_URL } from "../libs/api";
-import { InvGrid, McButton } from "../components/minecraft-ui";
+import { useOnlinePlayers } from "../hooks/useOnlinePlayers";
+import { apiFetch, apiUrl } from "../libs/api";
+import { InvGrid, McButton, PlayerList } from "../components/minecraft-ui";
 
 // TODO: Temporary placeholder data. Will be replaced with live inventory
 // fetched from the backend (typed at the API boundary), at which point these
@@ -21,42 +22,38 @@ const DEMO_ITEMS: (string | null)[] = [
 export default function Dashboard() {
   const { user, loading, refetch } = useAuth();
   const [status, setStatus] = useState<string | null>(null);
+  const { players, loading: playersLoading, error: playersError } = useOnlinePlayers();
 
   const handleStart = async () => {
     setStatus(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/minecraft/start`, {
-        method: "POST",
-        credentials: "include",
-      });
-      const data = await res.json();
-      setStatus(res.ok ? data.message ?? "Server started" : data.error ?? "Failed to start server");
+      const data = await apiFetch<{ message?: string }>("/api/minecraft/start", { method: "POST" });
+      setStatus(data.message ?? "Server started");
     } catch (error) {
-      setStatus("Request failed with error: " + String(error));
+      setStatus(error instanceof Error ? error.message : "Failed to start server");
     }
   };
 
   const handleStop = async () => {
     setStatus(null);
     try {
-      const res = await fetch(`${API_BASE_URL}/api/minecraft/stop`, {
-        method: "POST",
-        credentials: "include",
-      });
-      const data = await res.json();
-      setStatus(res.ok ? data.message ?? "Server stopped" : data.error ?? "Failed to stop server");
+      const data = await apiFetch<{ message?: string }>("/api/minecraft/stop", { method: "POST" });
+      setStatus(data.message ?? "Server stopped");
     } catch (error) {
-      setStatus("Request failed with error: " + String(error));
+      setStatus(error instanceof Error ? error.message : "Failed to stop server");
     }
   };
 
   const handleLogin = () => {
-    window.location.href = `${API_BASE_URL}/login`;
+    window.location.href = apiUrl("/login");
   };
 
   const handleLogout = async () => {
-    await fetch(`${API_BASE_URL}/logout`, { credentials: "include" });
-    refetch();
+    try {
+      await apiFetch("/logout");
+    } finally {
+      refetch();
+    }
   };
 
   if (loading) return null;
@@ -65,18 +62,21 @@ export default function Dashboard() {
     <div className="mc-page">
       <h1 className="mc-title">Kraft Bois</h1>
 
-      <div style={{ position: "absolute", top: 12, right: 12, display: "flex", alignItems: "center", gap: 8, zIndex: 1 }}>
-        {user ? (
-          <>
-            <span className="mc-status" style={{ fontSize: 14 }}>{user.name}</span>
-            <McButton onClick={handleLogout}>Logout</McButton>
-          </>
-        ) : (
-          <McButton onClick={handleLogin}>Login with Google</McButton>
-        )}
+      <div className="mc-topbar">
+        <div className="mc-topbar-user">
+          {user ? (
+            <>
+              <span className="mc-status mc-username">{user.name}</span>
+              <McButton onClick={handleLogout}>Logout</McButton>
+            </>
+          ) : (
+            <McButton onClick={handleLogin}>Login with Google</McButton>
+          )}
+        </div>
+        <PlayerList players={players} loading={playersLoading} error={playersError} />
       </div>
 
-      <div style={{ display: "flex", gap: 12 }}>
+      <div className="mc-actions">
         <McButton onClick={handleStart} disabled={!user}>Start Server</McButton>
         <McButton onClick={handleStop} disabled={!user}>Stop Server</McButton>
       </div>

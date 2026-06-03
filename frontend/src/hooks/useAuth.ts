@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { API_BASE_URL } from "../libs/api";
+import { apiFetch } from "../libs/api";
 
 interface User {
   email: string;
@@ -15,16 +15,14 @@ export function useAuth() {
   const [{ user, loading }, setAuth] = useState<AuthState>({ user: null, loading: true });
 
   const refetch = useCallback(() => {
-    fetch(`${API_BASE_URL}/api/user`, { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
+    apiFetch<User>("/api/user")
       .then((data) => setAuth({ user: data?.email ? data : null, loading: false }))
       .catch(() => setAuth({ user: null, loading: false }));
   }, []);
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${API_BASE_URL}/api/user`, { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : null))
+    apiFetch<User>("/api/user")
       .then((data) => { if (!cancelled) setAuth({ user: data?.email ? data : null, loading: false }); })
       .catch(() => { if (!cancelled) setAuth({ user: null, loading: false }); });
     return () => { cancelled = true; };
