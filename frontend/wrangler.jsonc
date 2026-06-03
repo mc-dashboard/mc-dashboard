@@ -1,5 +1,6 @@
 {
     "$schema": "./node_modules/wrangler/config-schema.json",
     "name": "mc-dashboard",
-    "compatibility_date": "2022-07-12"
+    "compatibility_date": "2022-07-12",
+    "assets": {"directory": "./dist"}
   }
