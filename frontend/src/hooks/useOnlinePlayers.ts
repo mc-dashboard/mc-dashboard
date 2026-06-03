@@ -36,9 +36,34 @@ export function useOnlinePlayers() {
   }, []);
 
   useEffect(() => {
-    fetchPlayers();
-    const id = setInterval(fetchPlayers, POLL_INTERVAL_MS);
-    return () => clearInterval(id);
+    let id: ReturnType<typeof setInterval> | undefined;
+
+    const stop = () => {
+      clearInterval(id);
+      id = undefined;
+    };
+    // Refetch immediately, then resume polling. Each backend poll is an RCON
+    // round-trip to the game server, so we only run it while the tab is visible.
+    const start = () => {
+      stop();
+      fetchPlayers();
+      id = setInterval(fetchPlayers, POLL_INTERVAL_MS);
+    };
+
+    // Poll while visible, pause while hidden. Runs on mount and whenever
+    // visibility flips.
+    const sync = () => {
+      if (document.visibilityState === "visible") start();
+      else stop();
+    };
+
+    sync();
+    document.addEventListener("visibilitychange", sync);
+
+    return () => {
+      stop();
+      document.removeEventListener("visibilitychange", sync);
+    };
   }, [fetchPlayers]);
 
   return { players, loading, error };

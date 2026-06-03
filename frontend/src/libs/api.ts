@@ -17,7 +17,17 @@ export function apiUrl(path: string): string {
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(apiUrl(path), { credentials: "include", ...init });
   const text = await res.text();
-  const data = text ? JSON.parse(text) : {};
+
+  // Tolerate non-JSON bodies (proxy error pages, redirects, empty responses):
+  // leave `data` empty on a parse failure so the status-based fallback below
+  // produces a clean message instead of a raw SyntaxError.
+  let data: any = {};
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    // ignore — `data` stays {}
+  }
+
   if (!res.ok) {
     throw new Error(data.error ?? `Request failed (${res.status})`);
   }

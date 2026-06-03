@@ -66,13 +66,22 @@ func (s *Service) getSession(r *http.Request) (*sessions.Session, error) {
 	return s.sessionStore.Get(r, "auth-session")
 }
 
+// saveSession persists the session, writing a 500 response and returning false
+// if it fails so callers can simply `return`.
+func (s *Service) saveSession(w http.ResponseWriter, r *http.Request, session *sessions.Session) bool {
+	if err := session.Save(r, w); err != nil {
+		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+		return false
+	}
+	return true
+}
+
 func (s *Service) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	state := generateRandomState()
 
 	session, _ := s.getSession(r)
 	session.Values["state"] = state
-	if err := session.Save(r, w); err != nil {
-		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+	if !s.saveSession(w, r, session) {
 		return
 	}
 
@@ -125,8 +134,7 @@ func (s *Service) HandleCallback(w http.ResponseWriter, r *http.Request) {
 
 	session.Values["email"] = userInfo.Email
 	session.Values["name"] = userInfo.Name
-	if err := session.Save(r, w); err != nil {
-		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+	if !s.saveSession(w, r, session) {
 		return
 	}
 
@@ -137,8 +145,7 @@ func (s *Service) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	session, _ := s.getSession(r)
 	session.Values["email"] = ""
 	session.Options.MaxAge = -1
-	if err := session.Save(r, w); err != nil {
-		http.Error(w, "Failed to save session", http.StatusInternalServerError)
+	if !s.saveSession(w, r, session) {
 		return
 	}
 

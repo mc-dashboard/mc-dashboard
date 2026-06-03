@@ -21,12 +21,8 @@ export function useAuth() {
   }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    apiFetch<User>("/api/user")
-      .then((data) => { if (!cancelled) setAuth({ user: data?.email ? data : null, loading: false }); })
-      .catch(() => { if (!cancelled) setAuth({ user: null, loading: false }); });
-    return () => { cancelled = true; };
-  }, []);
+    refetch();
+  }, [refetch]);
 
   return { user, loading, refetch };
 }

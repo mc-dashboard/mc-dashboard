@@ -14,11 +14,9 @@ export default function PlayerList({ players, loading, error }: PlayerListProps)
         Players Online ({loading ? "…" : players.length})
       </span>
 
-      {error ? (
-        <span className="mc-player-empty">{error}</span>
-      ) : players.length === 0 ? (
+      {players.length === 0 ? (
         <span className="mc-player-empty">
-          {loading ? "Loading…" : "No players online"}
+          {error ? error : loading ? "Loading…" : "No players online"}
         </span>
       ) : (
         <ul className="mc-player-list">
