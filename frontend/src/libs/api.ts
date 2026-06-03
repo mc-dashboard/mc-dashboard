@@ -21,7 +21,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   // Tolerate non-JSON bodies (proxy error pages, redirects, empty responses):
   // leave `data` empty on a parse failure so the status-based fallback below
   // produces a clean message instead of a raw SyntaxError.
-  let data: any = {};
+  let data: unknown = {};
   try {
     data = text ? JSON.parse(text) : {};
   } catch {
@@ -29,7 +29,8 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   }
 
   if (!res.ok) {
-    throw new Error(data.error ?? `Request failed (${res.status})`);
+    const error = (data as { error?: string }).error;
+    throw new Error(error ?? `Request failed (${res.status})`);
   }
   return data as T;
 }
