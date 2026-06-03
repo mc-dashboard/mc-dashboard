@@ -1,7 +1,7 @@
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:8080";
 
-// Normalize so a trailing slash in VITE_API_URL doesn't yield `//api/...`.
+// Normalize so a trailing slash doesn't yield `//api/...`.
 const BASE = API_BASE_URL.replace(/\/+$/, "");
 
 /** Joins a path onto the configured API base URL. */
