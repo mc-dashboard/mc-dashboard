@@ -1,5 +1,5 @@
-import { tooltipController } from "./McTooltipController";
-import "./minecraft-ui.css";
+import { tooltipController } from "../tooltip/McTooltipController";
+import "../minecraft-ui.css";
 
 export interface InvSlotProps {
   item?: string | null;

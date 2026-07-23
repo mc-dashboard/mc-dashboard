@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { tooltipController, type TooltipState } from "./McTooltipController";
-import "./minecraft-ui.css";
+import "../minecraft-ui.css";
 
 export default function McTooltipPortal() {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null);

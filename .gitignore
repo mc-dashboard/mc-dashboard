@@ -1,4 +1,11 @@
-.vite
-backend/cmd/server/tmp
-backend/.env
+# ── OS ──
+.DS_Store
+
+# ── Editor / tooling ──
 .claude
+.vite
+
+# ── Backend ──
+backend/.env*
+backend/cmd/server/tmp
+backend/main

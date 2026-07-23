@@ -1,4 +1,4 @@
-import "./minecraft-ui.css";
+import "../minecraft-ui.css";
 
 interface McButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
