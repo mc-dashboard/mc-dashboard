@@ -2,7 +2,7 @@
 
 A web dashboard for managing a Minecraft server — start/stop the server on demand and monitor its status in real time.
 
-## Architecture - test
+## Architecture
 
 ```mermaid
 graph TD
